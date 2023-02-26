@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:x_app_flutter/utils/theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(
       const Duration(seconds: 3),
       () async {
-        Navigator.of(context).pushNamed("/home");
+        Navigator.of(context).pushNamed("/");
       },
     );
   }
@@ -31,8 +30,9 @@ class _SplashScreenState extends State<SplashScreen> {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
     ));
+    // ignore: prefer_const_constructors
     return Scaffold(
-      backgroundColor: MyTheme.splash,
+      backgroundColor: const Color(0xff4267b2),
       // ignore: avoid_unnecessary_containers
       body: Container(
         child: Center(

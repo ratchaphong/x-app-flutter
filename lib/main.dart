@@ -1,82 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:x_app_flutter/models/category.dart';
+import 'package:x_app_flutter/blocs/products/products_bloc.dart';
+import 'package:x_app_flutter/blocs/promotions/promotions_bloc.dart';
 import 'package:x_app_flutter/models/product.dart';
-import 'package:x_app_flutter/models/promotion.dart';
-import 'package:x_app_flutter/pages/category_screen.dart';
 import 'package:x_app_flutter/pages/home_screen.dart';
 import 'package:x_app_flutter/pages/product_detail_screen.dart';
 import 'package:x_app_flutter/pages/product_screen.dart';
+import 'package:x_app_flutter/pages/promotion_detail_id_screen.dart';
 import 'package:x_app_flutter/pages/promotion_detail_screen.dart';
-import 'package:x_app_flutter/pages/repair_service_screen.dart';
-import 'package:x_app_flutter/pages/service_screen.dart';
 import 'package:x_app_flutter/pages/promotion_screen.dart';
 import 'package:x_app_flutter/pages/splash_screen.dart';
-import 'package:x_app_flutter/repository/home.dart';
+import 'package:x_app_flutter/repositories/product_repository.dart';
+import 'package:x_app_flutter/repositories/promotion_repository.dart';
+import 'package:x_app_flutter/services/app_constants.dart';
+import 'package:x_app_flutter/set_env.dart';
 
-import 'blocs/home/home_bloc.dart';
+void main() async {
+  await setupEnvironment(AppEnvironment.production);
+  final productRepository = ProductRepository();
+  final promotionRepository = PromotionRepository();
 
-void main() {
-  runApp(MyApp());
+  runApp(MyApp(
+    productRepository: productRepository,
+    promotionRepository: promotionRepository,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  final homeRepository = HomeRepository();
+  static late AppEnvironment appEnvironment;
+  final ProductRepository productRepository;
+  final PromotionRepository promotionRepository;
 
-  MyApp({super.key});
+  MyApp({required this.productRepository, required this.promotionRepository});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<HomeBloc>(
-          create: (context) => HomeBloc(homeRepository),
+        BlocProvider<ProductsBloc>(
+          create: (context) =>
+              ProductsBloc(productRepository: productRepository),
         ),
-        // BlocProvider<ServiceBloc>(
-        //   create: (context) =>
-        //       ServiceBloc(serviceRepository: serviceRepository),
-        // ),
-        // BlocProvider<PromotionBloc>(
-        //   create: (context) =>
-        //       PromotionBloc(promotionRepository: promotionRepository),
-        // ),
+        BlocProvider<PromotionsBloc>(
+          create: (context) =>
+              PromotionsBloc(promotionRepository: promotionRepository),
+        ),
       ],
       child: MaterialApp(
-        title: 'Kaidee App',
+        title: 'Flutter Demo',
         theme: ThemeData(
-          backgroundColor: Color(0xFF3b5998),
-          primaryColor: Colors.red[700],
-          accentColor: Colors.grey[500],
-          visualDensity: VisualDensity.adaptivePlatformDensity,
+          primarySwatch: Colors.blue,
         ),
-        initialRoute: "/",
+        initialRoute: '/splash',
+        onGenerateRoute: (settings) {
+          if (settings.name == '/product_detail') {
+            final product = settings.arguments as Product;
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailScreen(product: product),
+            );
+          }
+          if (settings.name == '/promotion_detail') {
+            final args = settings.arguments as PromotionScreenArguments;
+            final categoryName = args.categoryName;
+            final promotion = args.promotion;
+            return MaterialPageRoute(
+              builder: (context) => PromotionDetailScreen(
+                  categoryName: categoryName, promotion: promotion),
+            );
+          }
+          return null;
+        },
         routes: {
-          '/': (context) => const SplashScreen(),
-          '/home': (context) => BlocProvider.value(
-                value: BlocProvider.of<HomeBloc>(context),
-                child: HomeScreen(),
-              ),
-          // '/category': (context) => CategoryScreen(
-          //       categories: ModalRoute.of(context)!.settings.arguments
-          //           as List<Category>,
+          '/splash': (context) => SplashScreen(),
+          '/': (context) => HomeScreen(),
+          '/products': (context) => ProductScreen(),
+          '/promotions': (context) => PromotionScreen(),
+          '/promotion_detail_id': (context) => PromotionDetailIdScreen(),
+          // '/product_detail': (context) => ProductDetailScreen(
+          //       product: ModalRoute.of(context)!.settings.arguments as Product,
           //     ),
-          '/product': (context) => ProductListScreen(
-                args: ModalRoute.of(context)!.settings.arguments
-                    as ProductScreenArguments,
-              ),
-          '/product-detail': (context) => ProductDetailScreen(
-                product: ModalRoute.of(context)!.settings.arguments as Product,
-              ),
-          '/promotion': (context) => PromotionScreen(
-                promotions: ModalRoute.of(context)!.settings.arguments
-                    as List<PromotionModel>,
-              ),
-          '/promotion-detail': (context) => PromotionDetailScreen(
-                promotion: ModalRoute.of(context)!.settings.arguments
-                    as PromotionModel,
-              ),
-          // '/service': (context) => ServiceScreen(),
-          // '/repair_service': (context) => RepairServiceScreen(),
         },
       ),
     );

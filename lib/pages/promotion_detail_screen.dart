@@ -1,82 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:x_app_flutter/models/promotion.dart';
 
-class PromotionDetailScreen extends StatelessWidget {
-  final PromotionModel promotion;
+class PromotionScreenArguments {
+  final String categoryName;
+  final Promotion promotion;
 
-  PromotionDetailScreen({required this.promotion});
+  PromotionScreenArguments(this.categoryName, this.promotion);
+}
+
+class PromotionDetailScreen extends StatelessWidget {
+  final String categoryName;
+  final Promotion promotion;
+
+  const PromotionDetailScreen(
+      {super.key, required this.categoryName, required this.promotion});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).backgroundColor,
-        title: Text(promotion.title),
+        title: Text(promotion.name),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              promotion.image,
-              height: 300,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.network(
+            promotion.imageUrl,
+            width: double.infinity,
+            height: 200,
+            fit: BoxFit.cover,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  promotion.name,
+                  style: Theme.of(context).textTheme.headline5,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  promotion.validity,
+                  style: Theme.of(context).textTheme.subtitle1,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  promotion.description,
+                  style: Theme.of(context).textTheme.bodyText1,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    promotion.title,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    promotion.description,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time),
-                      SizedBox(width: 8),
-                      Text(
-                        promotion.validity ?? '',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on),
-                      SizedBox(width: 8),
-                      Text(
-                        promotion.location ?? '',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Icon(Icons.monetization_on),
-                      SizedBox(width: 8),
-                      Text(
-                        promotion.discount != null
-                            ? "${promotion.discount}% OFF"
-                            : 'Not Avalible',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

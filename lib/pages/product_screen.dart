@@ -1,59 +1,98 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:x_app_flutter/blocs/products/products_bloc.dart';
 import 'package:x_app_flutter/models/product.dart';
 import 'package:x_app_flutter/pages/product_detail_screen.dart';
 
-class ProductScreenArguments {
-  final String categoryName;
-  final List<Product> products;
-
-  ProductScreenArguments(this.categoryName, this.products);
+class ProductScreen extends StatefulWidget {
+  @override
+  _ProductScreenState createState() => _ProductScreenState();
 }
 
-class ProductListScreen extends StatefulWidget {
-  final ProductScreenArguments args;
-
-  const ProductListScreen({
-    Key? key,
-    required this.args,
-  }) : super(key: key);
+class _ProductScreenState extends State<ProductScreen> {
+  final _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   @override
-  _ProductListScreenState createState() => _ProductListScreenState();
-}
+  void initState() {
+    super.initState();
+    context.read<ProductsBloc>().add(LoadProducts());
+  }
 
-class _ProductListScreenState extends State<ProductListScreen> {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchDebounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchTextChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(Duration(seconds: 3), () {
+      context.read<ProductsBloc>().add(SearchProducts(keyword: value));
+    });
+  }
+
+  void _onProductSelected(Product product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailScreen(product: product),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final categoryName = widget.args.categoryName;
-    final products = widget.args.products;
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).backgroundColor,
-        title: Text(categoryName),
+        title: Text('Products'),
       ),
-      body: ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return ListTile(
-            leading: Image.asset(
-              product.imageUrl,
-              width: 50.0,
-              height: 50.0,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchTextChanged,
+              decoration: InputDecoration(
+                hintText: 'Search',
+                border: OutlineInputBorder(),
+              ),
             ),
-            title: Text(product.name),
-            subtitle: Text('${product.price} Baht'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProductDetailScreen(product: product),
-                ),
-              );
-            },
-          );
-        },
+          ),
+          Expanded(
+            child: BlocBuilder<ProductsBloc, ProductsState>(
+              builder: (context, state) {
+                if (state is ProductsLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (state is ProductsLoaded) {
+                  return ListView.builder(
+                    itemCount: state.products.length,
+                    itemBuilder: (context, index) {
+                      final product = state.products[index];
+                      return ListTile(
+                        title: Text(product.name),
+                        subtitle: Text('\$${product.price}'),
+                        onTap: () => _onProductSelected(product),
+                      );
+                    },
+                  );
+                } else if (state is ProductsError) {
+                  return Center(
+                    child: Text('Error loading products: ${state.message}'),
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

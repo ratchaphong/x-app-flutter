@@ -1,29 +1,21 @@
-class PromotionModel {
-  final String title;
+class Promotion {
+  final int id;
+  final String name;
   final String description;
-  final int discount;
-  final String image;
-  final String? id;
-  final String? name;
-  final String? imageUrl;
-  final DateTime? startDate;
-  final DateTime? endDate;
-  final String? validity;
-  final String? location;
-  final int? price;
+  final String imageUrl;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String validity;
+  final String location;
 
-  PromotionModel({
-    required this.title,
+  Promotion({
+    required this.id,
+    required this.name,
     required this.description,
-    required this.discount,
-    required this.image,
-    this.id,
-    this.name,
-    this.imageUrl,
-    this.startDate,
-    this.endDate,
-    this.validity,
-    this.location,
-    this.price,
+    required this.imageUrl,
+    required this.startDate,
+    required this.endDate,
+    required this.validity,
+    required this.location,
   });
 }

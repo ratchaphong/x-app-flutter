@@ -1,96 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:x_app_flutter/models/promotion.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:x_app_flutter/blocs/promotions/promotions_bloc.dart';
+import 'package:x_app_flutter/pages/promotion_detail_screen.dart';
 
 class PromotionScreen extends StatelessWidget {
-  final List<PromotionModel> promotions;
-
-  const PromotionScreen({Key? key, required this.promotions}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).backgroundColor,
-        title: Text('Promotions'),
+        title: Text('Promotion'),
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(10),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-        ),
-        itemCount: promotions.length,
-        itemBuilder: (context, index) {
-          final promotion = promotions[index];
-          return Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: InkWell(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  '/promotion-detail',
-                  arguments: promotion,
-                );
+      body: Column(
+        children: [
+          Expanded(
+            child: BlocBuilder<PromotionsBloc, PromotionsState>(
+              builder: (context, state) {
+                if (state is PromotionsLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (state is PromotionsLoaded) {
+                  return ListView.builder(
+                    itemCount: state.promotions.length,
+                    itemBuilder: (context, index) {
+                      final promotion = state.promotions[index];
+                      return ListTile(
+                        leading: Text(promotion.name),
+                        title: Text(promotion.description),
+                        subtitle: Text(promotion.validity),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/promotion_detail',
+                            arguments: PromotionScreenArguments("", promotion),
+                          );
+                        },
+                      );
+                    },
+                  );
+                } else if (state is PromotionsError) {
+                  return Center(
+                    child: Text('Error loading promotions: ${state.message}'),
+                  );
+                } else {
+                  return Container();
+                }
               },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(10),
-                        ),
-                        image: DecorationImage(
-                          image: AssetImage(promotion.image),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          promotion.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          promotion.description,
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          '${promotion.discount}% OFF',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
